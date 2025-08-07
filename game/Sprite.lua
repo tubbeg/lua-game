@@ -5,7 +5,7 @@ local tween = require ("3RD-PARTY/tween/tween")
 --meta -class
 local Sprite = {}
 
--- Sprite class
+-- Sprite class constructor
 function Sprite:new (position, key)
     local sprite = {}
     sprite.isDragging = false
@@ -41,11 +41,6 @@ function Sprite:setDrag(pos)
     self.offset.y = pos.y - self.location.y
 end
 
-
--- dt : delta time in milliseconds
--- tween, a tween class with at least two methods:
---      * :new(time,position, destination) - contructor
---      * :update()
 function Sprite:updatePos(dt)
     if self.isDragging then
         self.isTweening = false
