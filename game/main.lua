@@ -5,7 +5,7 @@ local sprite_list = {}
 function StopDrag()
     if not love.mouse.isDown(1) then
         for i,s in ipairs(sprite_list) do
-            s:resetDrag()   
+            s:resetDrag()
         end
     end
 end
@@ -24,25 +24,62 @@ function IsLeftClickOnSprite(x,y,button)
     return nil
 end
 
+
 function love.mousepressed(x, y, button)
     for i,s in ipairs(sprite_list) do
         s:resetDrag()
     end
-    local clickedSprite = IsLeftClickOnSprite(x,y,button) 
-    if clickedSprite then clickedSprite:setDrag({x=x,y=y}) end
+    local clickedSprite = IsLeftClickOnSprite(x,y,button)
+    if clickedSprite ~= nil then
+        clickedSprite:setDrag({x=x,y=y})
+    end
+end
+
+function AddXCards(list,x, startAtX, startAtY, endAtX, key)
+    local range = endAtX - startAtX
+    local posPerCard = (range/x) + 15
+    for i = 0, x do
+        local xPos = startAtX + (posPerCard * i)
+        local s = Sprite:new({x=xPos,y=startAtY}, key)
+        table.insert(list, s)
+    end
 end
 
 function love.load()
-    sprite_list[1] = Sprite:new({x=300,y=300}, "sprite.png")
-    sprite_list[2] = Sprite:new({x=500,y=300}, "sprite.png")
+    AddXCards(sprite_list, 5, 100, 300, 400, "sprite.png")
 end
 
+function GetDraggedSprite(list)
+    for i,s in ipairs(list) do
+        if s.isDragging then
+            return s
+        end
+    end
+    return nil
+end
+
+
+
+function HandleCollision(l, dt)
+    local draggedSprite = GetDraggedSprite(l)
+    if draggedSprite then
+        for i,s in ipairs(sprite_list) do
+            if s ~= draggedSprite then
+                if s:HasCollided(draggedSprite) then
+                    s:SwapOrigin(draggedSprite, s)
+                    s:TweenToOrigin(dt)
+                end
+            end
+        end
+    end
+end
 
 function love.update(dt)
     for i,s in ipairs(sprite_list) do
         s:updatePos(dt)
     end
     StopDrag()
+    HandleCollision(sprite_list, dt)
 end
 
 function love.draw()

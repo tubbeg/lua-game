@@ -1,4 +1,4 @@
--- WARNING! THIS CLASS REQUIRES LOVE2D
+-- WARNING! THIS CLASS REQUIRES LOVE2D AND FLUX
 local Utility = require("utility")
 local flux = require("3RD-PARTY/flux/flux")
 
@@ -21,6 +21,7 @@ function Sprite:new (position, key)
     sprite.image = love.graphics.newImage(key)
     sprite.width = sprite.image:getWidth()
     sprite.height = sprite.image:getHeight()
+    sprite.hitbox = {width = sprite.width /2, height = sprite.height /2}
     self.__index = self
     return setmetatable(sprite, self)
 end
@@ -41,16 +42,32 @@ function Sprite:setDrag(pos)
     self.offset.y = pos.y - self.location.y
 end
 
+
+-- simple AABB collision
+function Sprite:HasCollided(sprite)
+    local xInRange = self.location.x < sprite.location.x + sprite.hitbox.width
+    local yInRange = self.location.y < sprite.location.y + sprite.hitbox.height
+    local spriteXinRange = sprite.location.x < self.location.x + self.hitbox.width
+    local spriteYinRange = sprite.location.y < self.location.y + self.hitbox.height
+    return xInRange and yInRange and spriteXinRange and spriteYinRange
+end
+
 function Sprite:TweenToOrigin(dt)
     if not Utility.PosAreEqual(self.location, self.origin) then
         if not self.isTweening then
-            flux.to(self.location, 0.25, self.origin):ease("linear"):delay(0.3)
+            flux.to(self.location, 0.2, self.origin):ease("linear"):delay(0.1)
             self.isTweening = true
         end
         flux.update(dt)
     else
         self.isTweening = false
     end
+end
+
+function Sprite:SwapOrigin(sprite)
+    local newOrigin = {x=sprite.origin.x, y=sprite.origin.y}
+    sprite.origin = self.origin
+    self.origin = newOrigin
 end
 
 function Sprite:updatePos(dt)
