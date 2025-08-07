@@ -1,6 +1,6 @@
 -- WARNING! THIS CLASS REQUIRES LOVE2D
 local Utility = require("utility")
-local tween = require ("3RD-PARTY/tween/tween")
+local flux = require("3RD-PARTY/flux/flux")
 
 --meta -class
 local Sprite = {}
@@ -41,21 +41,25 @@ function Sprite:setDrag(pos)
     self.offset.y = pos.y - self.location.y
 end
 
+function Sprite:TweenToOrigin(dt)
+    if not Utility.PosAreEqual(self.location, self.origin) then
+        if not self.isTweening then
+            flux.to(self.location, 0.25, self.origin):ease("linear"):delay(0.3)
+            self.isTweening = true
+        end
+        flux.update(dt)
+    else
+        self.isTweening = false
+    end
+end
+
 function Sprite:updatePos(dt)
     if self.isDragging then
         self.isTweening = false
         self.location.x = love.mouse.getX() - self.offset.x
         self.location.y = love.mouse.getY() - self.offset.y
     else
-        if not Utility.PosAreEqual(self.location, self.origin) then
-            if not self.isTweening then
-                self.tween = tween.new(0.55, self.location, self.origin)
-                self.isTweening = true
-            end
-            self.tween:update(dt)
-        else
-            self.isTweening = false
-        end
+        self:TweenToOrigin(dt)
     end
 end
 

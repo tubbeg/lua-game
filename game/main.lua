@@ -1,7 +1,4 @@
-
-local tween = require ("3RD-PARTY/tween/tween")
 local Sprite = require ("Sprite")
-local Utility = require ("utility")
 
 local sprite_list = {}
 
