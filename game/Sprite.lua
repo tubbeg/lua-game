@@ -6,8 +6,14 @@ local flux = require("3RD-PARTY/flux/flux")
 local Sprite = {}
 
 -- Sprite class constructor
-function Sprite:new (position, key)
+function Sprite:new (position, key,z, prop)
     local sprite = {}
+    sprite.zOrigin = z
+    sprite.z = z --z-index : changes drawing order. Higher -> bring to front
+    sprite.prop = prop -- TBD
+    sprite.select = false
+    sprite.enableCollision = true
+    sprite.enableCollisionAtOrigin = false
     sprite.isDragging = false
     sprite.isTweening = false
     sprite.tween = nil
@@ -21,11 +27,16 @@ function Sprite:new (position, key)
     sprite.image = love.graphics.newImage(key)
     sprite.width = sprite.image:getWidth()
     sprite.height = sprite.image:getHeight()
-    sprite.hitbox = {width = sprite.width /2, height = sprite.height /2}
+    sprite.hitbox = {width = sprite.width /2, height = sprite.height * 4}
     self.__index = self
     return setmetatable(sprite, self)
 end
 
+function Sprite:StopTween()
+    if self.tween then
+        self.tween:stop()
+    end
+end
 
 function Sprite:posOverlap(pos)
     local endX = self.location.x + self.width
@@ -37,6 +48,7 @@ end
 
 
 function Sprite:setDrag(pos)
+    print(self.zOrigin)
     self.isDragging = true
     self.offset.x = pos.x - self.location.x
     self.offset.y = pos.y - self.location.y
@@ -45,17 +57,20 @@ end
 
 -- simple AABB collision
 function Sprite:HasCollided(sprite)
-    local xInRange = self.location.x < sprite.location.x + sprite.hitbox.width
-    local yInRange = self.location.y < sprite.location.y + sprite.hitbox.height
-    local spriteXinRange = sprite.location.x < self.location.x + self.hitbox.width
-    local spriteYinRange = sprite.location.y < self.location.y + self.hitbox.height
-    return xInRange and yInRange and spriteXinRange and spriteYinRange
+    if self.enableCollision and sprite.enableCollision and not self.select then
+        local xInRange = self.location.x < sprite.location.x + sprite.hitbox.width
+        local yInRange = self.location.y < sprite.location.y + sprite.hitbox.height
+        local spriteXinRange = sprite.location.x < self.location.x + self.hitbox.width
+        local spriteYinRange = sprite.location.y < self.location.y + self.hitbox.height
+        return xInRange and yInRange and spriteXinRange and spriteYinRange
+    end
+    return false
 end
 
 function Sprite:TweenToOrigin(dt)
     if not Utility.PosAreEqual(self.location, self.origin) then
         if not self.isTweening then
-            flux.to(self.location, 0.2, self.origin):ease("linear"):delay(0.1)
+            self.tween = flux.to(self.location, 0.2, self.origin):ease("linear")
             self.isTweening = true
         end
         flux.update(dt)
@@ -66,11 +81,39 @@ end
 
 function Sprite:SwapOrigin(sprite)
     local newOrigin = {x=sprite.origin.x, y=sprite.origin.y}
-    sprite.origin = self.origin
+    sprite.origin = {x=self.origin.x,y=self.origin.y}
     self.origin = newOrigin
+    self:StopTween()
+    sprite:StopTween()
+end
+
+
+function Sprite:DisableCollisionUntilOrigin()
+    self.enableCollision = false
+    self.enableCollisionAtOrigin = true
+end
+
+
+function Sprite:EnableCollison()
+    if self.enableCollisionAtOrigin and Utility.PosAreEqual(self.location, self.origin) then
+        self.enableCollision = true
+        self.enableCollisionAtOrigin = false
+    end
+end
+
+function Sprite:Select()
+    self.select = true
+end
+
+function Sprite:Play(pos)
+    if self.select then
+        self.origin = {x=pos.x, y=pos.y}
+        return self.prop
+    end
 end
 
 function Sprite:updatePos(dt)
+    self:EnableCollison()
     if self.isDragging then
         self.isTweening = false
         self.location.x = love.mouse.getX() - self.offset.x
@@ -80,7 +123,16 @@ function Sprite:updatePos(dt)
     end
 end
 
+function Sprite:SetZindex(z) self.z = z end
+function Sprite:ResetZindex() self.z = self.zOrigin end
+
 function Sprite:resetDrag() self.isDragging = false end
-function Sprite:draw() love.graphics.draw(self.image, self.location.x ,self.location.y) end
+function Sprite:draw()
+    if self.isDragging then
+        love.graphics.draw(self.image, self.location.x ,self.location.y, 0, 1.1, 1.1)
+    else
+        love.graphics.draw(self.image, self.location.x ,self.location.y)
+    end
+end
 
 return Sprite
