@@ -14,7 +14,10 @@ local keys =
         [2] = dummyKey,
         [3] = dummyKey,
         [4] = dummyKey,
-        [5] = dummyKey
+        [5] = dummyKey,
+        [6] = dummyKey,
+        [7] = dummyKey,
+        [8] = dummyKey
     }
 
 function love.mousepressed(x, y, button)

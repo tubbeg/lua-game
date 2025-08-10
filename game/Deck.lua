@@ -27,14 +27,23 @@ function Deck:new (startX, startY, endX)
 end
 
 function Deck:draw()
-    for i,s in ipairs(self.cards) do
-        s:draw()
+    if not self.draggedCard then
+        for i,s in ipairs(self.cards) do
+            s:draw()
+        end
+    else
+        for i,s in ipairs(self.cards) do
+            if s ~= self.draggedCard then
+                s:draw()
+            end
+        end
+        self.draggedCard:draw()
     end
 end
 
 function Deck:SetNrOfCards(nr)
     if self.range then
-        self.px = (self.range/nr) + 5
+        self.px = (self.range/nr) - 5
         self.nr = nr
     end
 end
@@ -71,7 +80,7 @@ function Deck:ResetDrag()
     end
 end
 
-function Deck:SetCardOnClick(x,y,button)
+function Deck:SetCardOnLeftClick(x,y,button)
     if button == 1 then
         for i,s in ipairs(self.cards) do
             if s:posOverlap({x=x,y=y}) then
@@ -81,9 +90,19 @@ function Deck:SetCardOnClick(x,y,button)
     end
 end
 
+function Deck:SelectCardOnRightClick(x,y,button)
+    if button == 2 then
+        for i,s in ipairs(self.cards) do
+            if s:posOverlap({x=x,y=y}) then
+                s:Select()
+            end
+        end
+    end
+end
+
 function Deck:click(x,y,button)
     self:ResetDrag()
-    self:SetCardOnClick(x,y,button)
+    self:SetCardOnLeftClick(x,y,button)
     if self.draggedCard then
         self.draggedCard:setDrag({x=x,y=y})
     end
