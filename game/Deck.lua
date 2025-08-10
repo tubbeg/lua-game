@@ -21,6 +21,7 @@ function Deck:new (startX, startY, endX)
     deck.range = deck.position.endX - deck.position.startX
     deck.px = nil
     deck.nr = nil
+    deck.isPlayingCard = false -- multiple cards cannot be played at the same time
     self.__index = self
     return setmetatable(deck, self)
 end
@@ -83,6 +84,7 @@ function Deck:RemoveCard(index,s)
         for j,card in ipairs(self.cards) do
             card.origin = self:GetNextPos(j)
         end
+        self.isPlayingCard = false
     end
 end
 
@@ -117,7 +119,10 @@ function PlayAnimation(card)
 end
 
 function Deck:PlayCard(s)
-    s:Play({x=300, y=100})
+    if not self.isPlayingCard then
+        self.isPlayingCard = true
+        s:Play({x=300, y=100})
+    end
 end
 
 
@@ -127,16 +132,19 @@ function Deck:SelectCardOnRightClick(x,y,button)
             if s:posOverlap({x=x,y=y}) then
                 self:PlayCard(s)
             end
-        end
+        
+        end 
     end
 end
 
 function Deck:click(x,y,button)
     self:ResetDrag()
-    self:SetCardOnLeftClick(x,y,button)
-    self:SelectCardOnRightClick(x,y,button)
-    if self.draggedCard then
-        self.draggedCard:setDrag({x=x,y=y})
+    if not self.isPlayingCard then
+        self:SetCardOnLeftClick(x,y,button)
+        self:SelectCardOnRightClick(x,y,button)
+        if self.draggedCard and not self.isPlayingCard then
+            self.draggedCard:setDrag({x=x,y=y})
+        end
     end
 end
 
@@ -169,7 +177,7 @@ function Deck:SwapCardsOnCollision(sprite)
 end
 
 function Deck:HandleCollision()
-    if self.draggedCard then
+    if self.draggedCard and not self.isPlayingCard then
         for i,s in ipairs(self.cards) do
             self:SwapCardsOnCollision(s)
         end
