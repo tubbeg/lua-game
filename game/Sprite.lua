@@ -9,8 +9,10 @@ local Sprite = {}
 function Sprite:new (position, key, prop)
     local sprite = {}
     sprite.prop = prop -- TBD
-    sprite.select = false
     sprite.enableCollision = true
+    sprite.startAnimation = false
+    sprite.animationTimer = 0
+    sprite.animationTimeEnd = 5
     sprite.enableCollisionAtOrigin = false
     sprite.isDragging = false
     sprite.isTweening = false
@@ -54,7 +56,7 @@ end
 
 -- simple AABB collision
 function Sprite:HasCollided(sprite)
-    if self.enableCollision and sprite.enableCollision and not self.select then
+    if self.enableCollision and sprite.enableCollision then
         local xInRange = self.location.x < sprite.location.x + sprite.hitbox.width
         local yInRange = self.location.y < sprite.location.y + sprite.hitbox.height
         local spriteXinRange = sprite.location.x < self.location.x + self.hitbox.width
@@ -98,15 +100,11 @@ function Sprite:EnableCollison()
     end
 end
 
-function Sprite:Select()
-    self.select = true
-end
 
 function Sprite:Play(pos)
-    if self.select then
-        self.origin = {x=pos.x, y=pos.y}
-        return self.prop
-    end
+    self.origin = {x=pos.x, y=pos.y}
+    self.startAnimation = true
+    return self.prop
 end
 
 function Sprite:updatePos(dt)
@@ -120,9 +118,33 @@ function Sprite:updatePos(dt)
     end
 end
 
+function Sprite:UpdateAnimTimer(dt)
+    if self.startAnimation then
+        self.animationTimer = self.animationTimer + dt
+    end
+end
+
+function Sprite:Update(dt)
+    self:updatePos(dt)
+    self:UpdateAnimTimer(dt)
+end
+
+
+function Sprite:AnimationComplete()
+    --print(self.animationTimeEnd)
+    --print(self.animationTimer)
+    return self.animationTimer > self.animationTimeEnd
+end
 
 function Sprite:resetDrag() self.isDragging = false end
 function Sprite:draw()
+    if self.startAnimation then
+        --print("Playing some super fancy animation...")
+        --print("TBD, TODO animation here")
+    end
+    if self.animationTimer > self.animationTimeEnd then
+        print("My animation timer is complete")
+    end
     if self.isDragging then
         love.graphics.draw(self.image, self.location.x ,self.location.y, 0, 1.5, 1.5)
     else

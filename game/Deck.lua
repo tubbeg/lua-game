@@ -13,7 +13,6 @@ and not the individual sprites
 local Sprite = require ("Sprite")
 local Deck = {}
 
-
 function Deck:new (startX, startY, endX)
     local deck = {}
     deck.cards = {}
@@ -55,10 +54,6 @@ function Deck:GetNextPos(i)
     return position
 end
 
-function Deck:GetZIndex()
-    
-end
-
 function Deck:load(keys)
     for i,k in ipairs(keys) do
         local s = Sprite:new(self:GetNextPos(i), k.id, keys.prop)
@@ -66,9 +61,35 @@ function Deck:load(keys)
     end
 end
 
+-- I could also set the element to nil
+-- but it causes a bug where other cards
+-- also disappear. It might have to do something
+-- with the sorting function
+function RemoveElement(t,index)
+    local newTable = {}
+    for i,v in ipairs(t) do
+        if i ~= index then
+            table.insert(newTable,v)
+        end
+    end
+    return newTable
+end
+
+
+function Deck:RemoveCard(index,s)
+    if s:AnimationComplete() then
+        self.cards = RemoveElement(self.cards, index)
+        self:SetNrOfCards(#self.cards)
+        for j,card in ipairs(self.cards) do
+            card.origin = self:GetNextPos(j)
+        end
+    end
+end
+
 function Deck:update(dt)
     for i,s in ipairs(self.cards) do
-        s:updatePos(dt)
+        s:Update(dt)
+        self:RemoveCard(i,s)
     end
     self:StopDrag()
     self:HandleCollision()
@@ -90,11 +111,21 @@ function Deck:SetCardOnLeftClick(x,y,button)
     end
 end
 
+
+function PlayAnimation(card)
+    -- TBD
+end
+
+function Deck:PlayCard(s)
+    s:Play({x=300, y=100})
+end
+
+
 function Deck:SelectCardOnRightClick(x,y,button)
     if button == 2 then
         for i,s in ipairs(self.cards) do
             if s:posOverlap({x=x,y=y}) then
-                s:Select()
+                self:PlayCard(s)
             end
         end
     end
@@ -103,6 +134,7 @@ end
 function Deck:click(x,y,button)
     self:ResetDrag()
     self:SetCardOnLeftClick(x,y,button)
+    self:SelectCardOnRightClick(x,y,button)
     if self.draggedCard then
         self.draggedCard:setDrag({x=x,y=y})
     end
