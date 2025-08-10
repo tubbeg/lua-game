@@ -1,5 +1,15 @@
 
 
+--[[
+
+NOTE: The z-index has been removed. The drawing is based on
+which element comes first in the table, i.e. the table index
+
+So it's essentially the same thing. I realized that the Deck
+class should be responsible for keeping track of the z-index,
+and not the individual sprites
+]]
+
 local Sprite = require ("Sprite")
 local Deck = {}
 
@@ -36,10 +46,13 @@ function Deck:GetNextPos(i)
     return position
 end
 
+function Deck:GetZIndex()
+    
+end
+
 function Deck:load(keys)
     for i,k in ipairs(keys) do
-        local zIndex = i + 10
-        local s = Sprite:new(self:GetNextPos(i), k.id,zIndex, keys.prop)
+        local s = Sprite:new(self:GetNextPos(i), k.id, keys.prop)
         table.insert(self.cards, s)
     end
 end
@@ -72,7 +85,6 @@ function Deck:click(x,y,button)
     self:ResetDrag()
     self:SetCardOnClick(x,y,button)
     if self.draggedCard then
-        self.draggedCard:SetZindex(0)
         self.draggedCard:setDrag({x=x,y=y})
     end
 end
@@ -82,26 +94,25 @@ function Deck:StopDrag()
         for i,s in ipairs(self.cards) do
             self.draggedCard = nil
             s:resetDrag()
-            s:ResetZindex()
         end
     end
 end
 
-function CompareByZIndex (a,b)
-    return a.z > b.z
+function SortByPos (a,b)
+    return a.origin.x > b.origin.x
 end
 
--- TODO, make sure that each sprite swaps z-origins
-function Deck:SortByZindex()
-    table.sort(self.cards, CompareByZIndex)
+function Deck:UpdateZindex()
+    table.sort(self.cards, SortByPos)
 end
+
 
 function Deck:SwapCardsOnCollision(sprite)
     if sprite ~= self.draggedCard then
         if sprite:HasCollided(self.draggedCard) then
             sprite:SwapOrigin(self.draggedCard)
             sprite:DisableCollisionUntilOrigin()
-            self:SortByZindex()
+            self:UpdateZindex()
         end
     end
 end

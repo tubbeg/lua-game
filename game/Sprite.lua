@@ -6,10 +6,8 @@ local flux = require("3RD-PARTY/flux/flux")
 local Sprite = {}
 
 -- Sprite class constructor
-function Sprite:new (position, key,z, prop)
+function Sprite:new (position, key, prop)
     local sprite = {}
-    sprite.zOrigin = z
-    sprite.z = z --z-index : changes drawing order. Higher -> bring to front
     sprite.prop = prop -- TBD
     sprite.select = false
     sprite.enableCollision = true
@@ -48,7 +46,6 @@ end
 
 
 function Sprite:setDrag(pos)
-    print(self.zOrigin)
     self.isDragging = true
     self.offset.x = pos.x - self.location.x
     self.offset.y = pos.y - self.location.y
@@ -123,13 +120,11 @@ function Sprite:updatePos(dt)
     end
 end
 
-function Sprite:SetZindex(z) self.z = z end
-function Sprite:ResetZindex() self.z = self.zOrigin end
 
 function Sprite:resetDrag() self.isDragging = false end
 function Sprite:draw()
     if self.isDragging then
-        love.graphics.draw(self.image, self.location.x ,self.location.y, 0, 1.1, 1.1)
+        love.graphics.draw(self.image, self.location.x ,self.location.y, 0, 1.5, 1.5)
     else
         love.graphics.draw(self.image, self.location.x ,self.location.y)
     end
