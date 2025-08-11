@@ -1,7 +1,8 @@
-sprite.png
-sprite.jpg
+sprite*
 3RD-PARTY/
 *.txt
 music/
 info.png
 aseprite/
+moonshine/
+main.test.shaders.lua
