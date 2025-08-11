@@ -77,12 +77,13 @@ function RemoveElement(t,index)
 end
 
 
-function Deck:RemoveCard(index,s)
+function Deck:RemoveCompletedCards(index,s,dt)
     if s:AnimationComplete() then
         self.cards = RemoveElement(self.cards, index)
         self:SetNrOfCards(#self.cards)
         for j,card in ipairs(self.cards) do
             card.origin = self:GetNextPos(j)
+            card:TweenToOrigin(dt)
         end
         self.isPlayingCard = false
     end
@@ -91,7 +92,7 @@ end
 function Deck:update(dt)
     for i,s in ipairs(self.cards) do
         s:Update(dt)
-        self:RemoveCard(i,s)
+        self:RemoveCompletedCards(i,s,dt)
     end
     self:StopDrag()
     self:HandleCollision()
