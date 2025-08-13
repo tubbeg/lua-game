@@ -1,4 +1,4 @@
-local Sprite = require ("Sprite2")
+local Sprite = require ("Sprite")
 local Deck = {}
 
 function Deck:new (startX, startY, endX, playLocation)
