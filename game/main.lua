@@ -1,12 +1,14 @@
 local Sprite = require ("Sprite")
 local Deck = require ("Deck")
 
+local wParam = {x=800,y=600}
 local startAtX = 50
 local endAtX = 700
 local startAtY = 300
-local deck = Deck:new(startAtX,startAtY,endAtX)
+local playTo = {x=wParam.x/2.4, y=wParam.y/6}
+local deck = Deck:new(startAtX,startAtY,endAtX,playTo)
 
-local dummyId = "sprite.png"
+local dummyId = "assets/aseprite/bomb.png"
 local dummyKey = {id = dummyId, prop = {}}
 local keys =
     {
@@ -20,13 +22,31 @@ local keys =
         [8] = dummyKey
     }
 
-function love.mousepressed(x, y, button)
-    deck:click(x,y,button)
+function love.keyreleased( key )
+   if key == "x" then
+        deck:click()
+   end
+   if key == "z" then
+        print("TBD")
+   end
+   if key == "left" then
+        deck:changeSelection("left")
+   end
+   if key == "right" then
+        deck:changeSelection("right")
+   end
+   if key == "z" then
+        print("TBD")
+   end
 end
 
 function love.load()
-    deck:SetNrOfCards(#keys)
-    deck:load(keys)
+    if love.window.setMode( wParam.x, wParam.y) then
+        love.graphics.setDefaultFilter("nearest", "nearest")
+        deck:load(keys)
+    else
+        print("Something went wrong :/")
+    end
 end
 
 function love.update(dt)
@@ -34,5 +54,6 @@ function love.update(dt)
 end
 
 function love.draw()
+
     deck:draw()
 end
