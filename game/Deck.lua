@@ -10,6 +10,7 @@ function Deck:new (startX, startY, endX, playLocation)
     deck.nr = nil
     deck.center = playLocation
     deck.selected = 1
+    deck.playedCards = {}
     self.__index = self
     return setmetatable(deck, self)
 end
@@ -17,6 +18,9 @@ end
 function Deck:draw()
     for i,s in ipairs(self.cards) do
         s:draw(self.cards[self.selected])
+    end
+    for i,s in ipairs(self.playedCards) do
+        s:draw(nil)
     end
 end
 
@@ -50,15 +54,33 @@ function Deck:update(dt)
     for i,s in ipairs(self.cards) do
         s:update(dt)
     end
+    for i,s in ipairs(self.playedCards) do
+        s:update(dt)
+    end
 end
 
+function RemoveElement(t,e)
+    local newTable = {}
+    for i,v in ipairs(t) do
+        if v ~= e then
+            table.insert(newTable,v)
+        end
+    end
+    return newTable
+end
 
 function Deck:click()
     local s = self.cards[self.selected]
     if s and self.center then
         s:play(self.center)
+        table.insert(self.playedCards, s)
+        self.cards = RemoveElement(self.cards, s)
         if #self.cards >= 1 then
             self.selected = 1
+        end
+        self:setNrOfCards(#self.cards)
+        for i,sprite in ipairs(self.cards) do
+            sprite:moveTo(self:getNextPos(i))
         end
     end
 end
