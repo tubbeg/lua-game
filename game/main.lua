@@ -1,5 +1,6 @@
 local Sprite = require ("Sprite")
 local Deck = require ("Deck")
+local flux = require("3RD-PARTY/flux/flux")
 
 local wParam = {x=800,y=600}
 local startAtX = 50
@@ -50,6 +51,7 @@ function love.load()
 end
 
 function love.update(dt)
+    flux.update(dt)
     deck:update(dt)
 end
 
