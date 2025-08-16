@@ -11,7 +11,6 @@ function Deck:new (startX, startY, endX, playLocation)
     deck.nr = nil
     deck.center = playLocation
     deck.selected = nil
-    deck.movingCard = false
     deck.playedCards = {}
     self.__index = self
     return setmetatable(deck, self)
@@ -19,17 +18,11 @@ end
 
 function Deck:setSelected()
     self.selected = nil
-    local nextKey = nil
-    for k,v in pairs(self.cards) do
-        local i = math.random(2)
-        if i == 2 then
-            nextKey =  k
-        end
-    end
-    if not nextKey then
-        print("No cards left!")
+    local nextCard = Utility.GetRandomElement(self.cards)
+    if nextCard then
+        self.selected = nextCard
     else
-        self.selected = self.cards[nextKey]
+        print("No cards in hand")
     end
 end
 
@@ -81,75 +74,43 @@ function Deck:update(dt)
     for i,s in ipairs(self.playedCards) do
         s:update(dt)
     end
-    if self.selected then
-        if self.selected:IsAtNextPosition() then
-            self.movingCard = false
-        end
-    end
 end
 
-function RemoveElement(t,e)
-    local newTable = {}
-    for i,v in ipairs(t) do
-        if v ~= e then
-            table.insert(newTable,v)
-        end
-    end
-    return newTable
-end
 
 function Deck:click()
-    if self.selected and self.center and not self.movingCard then
-        self.movingCard = true
+    if self.selected then
         local sel = self.selected
-        self.cards = RemoveElement(self.cards, sel)
-        sel:play(self.center)
-        table.insert(self.playedCards, sel)
-        self:setSelected()
+        self.cards = Utility.RemoveElement(self.cards, sel)
         self:setNrOfCards(#self.cards)
         for i,sprite in ipairs(self.cards) do
             sprite:moveTo(self:getNextPos(i))
         end
+        sel:moveTo(self.center)
+        table.insert(self.playedCards, sel)
+        self:setSelected()
     end
     if not self.selected then
-        print("No cards in hand!")
+        print("There is not selected card!")
     end
 end
 
-function Deck:GetLeft()
-    local b = Utility.GetBefore(self.cards, self.selected)
-    if not b then
-        local l = Utility.GetLast(self.cards)
-        if l then
-            self.selected = l
-        else
-            print("Missing cards in hand!")
-        end
-    else
-        self.selected = b
-    end
-end
-
-function Deck:GetRight()
-    local a = Utility.GetAfter(self.cards, self.selected)
-    if not a then
-        local f = Utility.GetFirst(self.cards)
-        if f then
-            self.selected = f
-        else
-            print("Missing cards in hand!")
-        end
-    else
-        self.selected = a
-    end
-end
 
 function Deck:changeSelection(direction)
     if self.selected then
         if direction == "left" then
-            self:GetLeft()
+            local left = Utility.GetLeft(self.cards, self.selected)
+            if left then
+                self.selected = left
+            else
+                print("NO CARDS LEFT")
+            end
         else
-            self:GetRight()
+            local right = Utility.GetRight(self.cards, self.selected)
+            if right then
+                self.selected = right
+            else
+                print("NO CARDS LEFT")
+            end
         end
     end
 end
